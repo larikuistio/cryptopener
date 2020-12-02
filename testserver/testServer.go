@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+	"io/ioutil"
 )
 
 type testServer struct {
@@ -15,10 +16,11 @@ type testServer struct {
 var token string
 
 func api(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	tokenJson := "{\"token=" + string(token) + "\"}"
+	body, _ := ioutil.ReadAll(r.Body)
+	w.Header().Set("Content-Type", "application/text/plain")
+	tokenJson := "token=" + token + string(body)
     switch r.Method {
-    case "GET":
+	case "GET":
         w.WriteHeader(http.StatusOK)
 		w.Write([]byte(tokenJson))
     default:
