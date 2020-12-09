@@ -47,6 +47,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	response := "token=" + token + string(body)
     switch r.Method {
 	case "GET":
+		fmt.Println("GET")
         w.WriteHeader(http.StatusOK)
 		w.Write([]byte(response))
     default:
