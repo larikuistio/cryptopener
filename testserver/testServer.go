@@ -14,10 +14,6 @@ import (
 
 var token string
 
-type testServer struct {
-	
-}
-
 type gzipResponseWriter struct {
 	io.Writer
 	http.ResponseWriter
