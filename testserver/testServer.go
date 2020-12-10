@@ -63,7 +63,7 @@ func RandomString(n int) string {
 
 func main() {
 	rand.Seed(time.Now().Unix())
-	token = RandomString(32)
+	token = RandomString(64)
 	fmt.Println("Token is: " + string(token))
 
     log.Fatal(http.ListenAndServeTLS("127.0.0.1:8080", "cert.pem", "key.pem", makeGzipHandler(handler)))
