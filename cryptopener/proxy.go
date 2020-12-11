@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"io/ioutil"
 )
 
 const (
@@ -13,63 +14,49 @@ const (
 	HTTPSERVER_PORT = "8080"
 )
 
-
-func handleConnFromClient(conn net.Conn, reqc chan []byte, respc chan []byte) {
-	
-	buf := make([]byte, 0, 16384)
-	
-	_, err := conn.Read(buf)
-	if err != nil {
-	  	fmt.Println("Error reading:", err.Error())
-	}
-	reqc <- buf
-	buf = <- respc
-	conn.Write([]byte(buf))
-	conn.Close()
-}
-
-func handleConnToServer(reqc chan []byte, respc chan []byte) {
-	
-	buf := make([]byte, 0, 16384)
-	
-	for {
-		buf = <- reqc
-		conn, err := net.Dial("tcp", HTTPSERVER_HOST + ":" + HTTPSERVER_PORT)
-		if err != nil {
-			fmt.Println("Error connecting to http server:", err.Error())
-			os.Exit(1)
-		}
-		conn.Write([]byte(buf))
-		conn.Read(buf)
-		respLen := len(buf)
-		fmt.Printf("Received response of length %d from http server\n", respLen)
-		respc <- buf
-		
-		conn.Close()
-	}
+func checkError(err error) {
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+        os.Exit(1)
+    }
 }
 
 func main() {
 
-	reqc := make(chan []byte)
-	respc := make(chan []byte)
+	for {
+		var buf [16384]byte
 
-    l, err := net.Listen("tcp", LISTEN_HOST + ":" + LISTEN_PORT)
-    if err != nil {
-        fmt.Println("Error listening:", err.Error())
-        os.Exit(1)
-    }
+		tcpAddrc, err := net.ResolveTCPAddr("tcp", LISTEN_HOST + ":" + LISTEN_PORT)
+		checkError(err)
 
-    defer l.Close()
-    fmt.Println("Listening on " + LISTEN_HOST + ":" + LISTEN_PORT)
+		listener, err := net.ListenTCP("tcp", tcpAddrc)
+		checkError(err)
+		fmt.Println("Listening on " + LISTEN_HOST + ":" + LISTEN_PORT)
 
-	for {        
-        conn, err := l.Accept()
-        if err != nil {
-            fmt.Println("Error accepting: ", err.Error())
-            os.Exit(1)
-        }
-		go handleConnFromClient(conn, reqc, respc)
-		go handleConnToServer(reqc, respc)
-    }
+		tcpAddrs, err := net.ResolveTCPAddr("tcp", HTTPSERVER_HOST + ":" + HTTPSERVER_PORT)
+		checkError(err)
+
+		conns, err := net.DialTCP("tcp", nil, tcpAddrs)
+		checkError(err)
+		fmt.Println("Connected to http server at " + HTTPSERVER_HOST + ":" + HTTPSERVER_PORT)
+
+		for {
+			connc, err := listener.Accept()
+			checkError(err)
+			
+			_, err = connc.Read(buf[0:])
+			checkError(err)
+
+			_, err = conns.Write([]byte(buf[0:]))
+			checkError(err)
+
+			response, err := ioutil.ReadAll(conns)
+			checkError(err)
+			respLen := len(response)
+			fmt.Printf("Received response of length %d from http server\n", respLen)
+
+			_, err = connc.Write([]byte(response))
+			checkError(err)
+		}
+	}
 }
