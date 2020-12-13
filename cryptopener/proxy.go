@@ -29,21 +29,22 @@ func checkError(err error) {
 
 func clientSocket(ctoschan chan []byte, stocchan chan []byte) {
 	
-	netaddr, err := net.ResolveIPAddr("ip4:ip", CLIENT_HOST)
+	netaddr, err := net.ResolveTCPAddr("tcp", CLIENT_HOST + ":" + CLIENT_PORT)
 	checkError(err)
 
-	conn, err := net.ListenIP("ip4:ipv4", netaddr)
+	listener, err := net.ListenTCP("tcp", netaddr)
 	checkError(err)
-	
-	go clientSocketWriter(conn, stocchan)
-	go clientSocketReader(conn, ctoschan)
 
 	for {
-		time.Sleep(1000 * time.Millisecond)
+		conn, err := listener.Accept()
+		checkError(err)
+
+		go clientSocketWriter(conn, stocchan)
+		go clientSocketReader(conn, ctoschan)
 	}
 }
 
-func clientSocketWriter(conn *net.IPConn, stocchan chan []byte) {
+func clientSocketWriter(conn net.Conn, stocchan chan []byte) {
 	buf := make([]byte, 16384)
 	for {
 		buf = <- stocchan
@@ -53,7 +54,7 @@ func clientSocketWriter(conn *net.IPConn, stocchan chan []byte) {
 	}
 }
 
-func clientSocketReader(conn *net.IPConn, ctoschan chan []byte) {
+func clientSocketReader(conn net.Conn, ctoschan chan []byte) {
 	buf := make([]byte, 16384)
 	for {
 		_, err := conn.Read(buf)
@@ -65,10 +66,10 @@ func clientSocketReader(conn *net.IPConn, ctoschan chan []byte) {
 
 func serverSocket(ctoschan chan []byte, stocchan chan []byte) {
 
-	netaddr, err := net.ResolveIPAddr("ip4:ip", HTTPSERVER_HOST)
+	netaddr, err := net.ResolveTCPAddr("tcp", HTTPSERVER_HOST + ":" + HTTPSERVER_PORT)
 	checkError(err)
 
-	conn, err := net.DialIP("ip4:ipv4", nil, netaddr)
+	conn, err := net.DialTCP("tcp", nil, netaddr)
 	checkError(err)
 
 	go serverSocketWriter(conn, ctoschan)
@@ -79,7 +80,7 @@ func serverSocket(ctoschan chan []byte, stocchan chan []byte) {
 	}
 }
 
-func serverSocketWriter(conn *net.IPConn, ctoschan chan []byte) {
+func serverSocketWriter(conn net.Conn, ctoschan chan []byte) {
 	buf := make([]byte, 16384)
 	for {
 		buf = <- ctoschan
@@ -89,7 +90,7 @@ func serverSocketWriter(conn *net.IPConn, ctoschan chan []byte) {
 	}
 }
 
-func serverSocketReader(conn *net.IPConn, stocchan chan []byte) {
+func serverSocketReader(conn net.Conn, stocchan chan []byte) {
 	buf := make([]byte, 16384)
 	for {
 		_, err := conn.Read(buf)
