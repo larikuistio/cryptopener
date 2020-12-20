@@ -37,23 +37,28 @@ func (client *Client) getRequestBody(message string) []byte {
 	return []byte(request)
 }
 
+<<<<<<< HEAD
 func (client *Client) SendMessage(message string) ([]byte, error) {
+=======
+// Send a message into socket
+func (client *Client) SendMessage(message string) []byte {
+>>>>>>> e29d35f (Add concurrent requests)
 	connection, err := tls.Dial("tcp", client.addr, &client.config)
 	// set timeout for connection
 	connection.SetReadDeadline(time.Now().Add(ConnectionTimeout * time.Second))
 
 	log.Printf("Sendig message %s to server", message)
 	if err != nil {
-		log.Fatalf("Failed to create connection, error %e", err)
-		return nil, err
+		log.Printf("Failed to create connection, error %e", err)
+		return nil
 	}
 	defer connection.Close()
 
 	m := client.getRequestBody(message)
 	_, err = connection.Write(m)
 	if err != nil {
-		log.Fatalln("Failed to write message")
-		return nil, err
+		log.Printf("Failed to write message, error %e", err)
+		return nil
 	}
 
 	// buffer that contains whole message
@@ -67,6 +72,14 @@ func (client *Client) SendMessage(message string) ([]byte, error) {
 		}
 		buffer = append(buffer, b[:size]...)
 	}
+	defer connection.Close()
+
 	log.Printf("Return buffer %s", string(buffer))
-	return buffer, nil
+	return buffer
+}
+
+// Communicates a return value into a channel thus it can used with runtime routines
+func (client *Client) SendMessageConcurrent(channel chan []byte, message string) {
+	channel <-client.SendMessage(message)
+	return
 }
