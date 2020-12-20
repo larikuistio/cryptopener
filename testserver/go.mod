@@ -1,4 +1,4 @@
-module cryptopener
+module testServer
 
 go 1.15
 
