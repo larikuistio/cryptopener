@@ -43,7 +43,7 @@ func (client *Client) SendMessage(message string) []byte {
 	// set timeout for connection
 	connection.SetReadDeadline(time.Now().Add(ConnectionTimeout * time.Second))
 
-	log.Printf("Sendig message %s to server", message)
+	log.Printf("Sending message %s to server", message)
 	if err != nil {
 		log.Printf("Failed to create connection, error %e", err)
 		return nil
