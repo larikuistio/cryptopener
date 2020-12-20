@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"crypto/tls"
@@ -37,12 +37,8 @@ func (client *Client) getRequestBody(message string) []byte {
 	return []byte(request)
 }
 
-<<<<<<< HEAD
-func (client *Client) SendMessage(message string) ([]byte, error) {
-=======
 // Send a message into socket
 func (client *Client) SendMessage(message string) []byte {
->>>>>>> e29d35f (Add concurrent requests)
 	connection, err := tls.Dial("tcp", client.addr, &client.config)
 	// set timeout for connection
 	connection.SetReadDeadline(time.Now().Add(ConnectionTimeout * time.Second))
