@@ -1,3 +1,11 @@
-module github.com/larikuistio/cryptopener/testServer
+module cryptopener
 
 go 1.15
+
+require (
+	github.com/larikuistio/cryptopener/testServer v0.0.0
+)
+
+replace (
+	github.com/larikuistio/cryptopener/testServer => ./testServer
+)
