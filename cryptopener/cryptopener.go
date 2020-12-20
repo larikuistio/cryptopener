@@ -1,24 +1,21 @@
 package cryptopener
 
 import (
-	"net/http"
-	"time"
+	client "github.com/larikuistio/cryptopener/client"
 )
 
 // just a base struct
 type cryptopener struct {
-	client http.Client
+	client client.Client
 }
 
-func setupClient() http.Client {
-	return http.Client{
-		Timeout: time.Duration(60),
-	}
-}
 
-func NewCryptopener() *cryptopener {
+func NewCryptopener(address string, entry string) *cryptopener {
 	cryptopener := cryptopener{
-		client: setupClient(),
+		client: client.Client{
+			Addr: address,
+			Entrypoint: entry,
+		},
 	}
 	return &cryptopener
 }

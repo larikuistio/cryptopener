@@ -1,4 +1,4 @@
-package main
+package cryptopener
 
 import (
 	"fmt"
@@ -28,7 +28,7 @@ func checkError(err error) {
 }
 
 func clientSocket(ctoschan chan []byte, stocchan chan []byte) {
-	
+
 	netaddr, err := net.ResolveTCPAddr("tcp", CLIENT_HOST + ":" + CLIENT_PORT)
 	checkError(err)
 

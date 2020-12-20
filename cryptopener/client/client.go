@@ -11,19 +11,19 @@ const ConnectionTimeout = 60
 
 type Client struct {
 	config tls.Config
-	addr string
+	Addr string
 	bufferSize int
 	// base attack vector
-	entrypoint string
+	Entrypoint string
 }
 
 
 
 func NewClient(addr string, entrypoint string) *Client {
 	return &Client{
-		addr: addr,
+		Addr: addr,
 		bufferSize: 4096,
-		entrypoint: entrypoint,
+		Entrypoint: entrypoint,
 		config: tls.Config{
 			// with this we can use our own cert
 			InsecureSkipVerify: true,
@@ -32,14 +32,14 @@ func NewClient(addr string, entrypoint string) *Client {
 }
 
 func (client *Client) getRequestBody(message string) []byte {
-	token := fmt.Sprintf("%s%s", client.entrypoint, message)
-	request := fmt.Sprintf("GET %s HTTP/1.1\r\nHost: %s\r\nAccept-Encoding: gzip;deflate\r\n\r\n", token, client.addr)
+	token := fmt.Sprintf("%s%s", client.Entrypoint, message)
+	request := fmt.Sprintf("GET %s HTTP/1.1\r\nHost: %s\r\nAccept-Encoding: gzip;deflate\r\n\r\n", token, client.Addr)
 	return []byte(request)
 }
 
 // Send a message into socket
 func (client *Client) SendMessage(message string) []byte {
-	connection, err := tls.Dial("tcp", client.addr, &client.config)
+	connection, err := tls.Dial("tcp", client.Addr, &client.config)
 	// set timeout for connection
 	connection.SetReadDeadline(time.Now().Add(ConnectionTimeout * time.Second))
 

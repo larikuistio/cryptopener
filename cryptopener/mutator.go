@@ -1,14 +1,5 @@
 package cryptopener
 
-import (
-	"log"
-	"fmt"
-	"net"
-	"unsafe"
-	"context"
-	"crypto/tls"
-	"net/http"
-)
 
 const TOKENS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -36,27 +27,13 @@ type TokenMutator struct {
 	previous []byte
 	iterator tokenIterator
 	result []byte
-	client http.Client
 }
 
 func NewMutator(target string, port int) *TokenMutator {
-	client := http.Client{
-		Transport: &http.Transport{
-			DisableCompression: true,
-			DialTLSContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				conn, err := tls.Dial(network, addr, myConfig)
-				if err != nil {
-				  return nil, err
-				}
-				return conn, nil
-			  },
-		},
-	}
 	return &TokenMutator{
 		target: target,
 		port: port,
 		previous: []byte{},
-		client: client,
 		iterator: tokenIterator{
 			tokens: []byte(TOKENS),
 			previous: 0,
@@ -74,36 +51,4 @@ func (mutator *TokenMutator) newPayload() ([]byte, error) {
 	new_payload = append(new_payload, mutator.iterator.nextToken())
 	mutator.previous = new_payload
 	return new_payload, nil
-}
-
-func analyseResponse(channel chan *http.Response) {
-	response := <- channel
-	// NOTE: this is absolute nono, but for now this have to do
-	// so we are reading file size from memory
-	size := unsafe.Sizeof(response)
-	log.Println("Payload size:", size)
-	return
-}
-
-// SendNextPayload generate and send new payload
-func (mutator *TokenMutator) SendNextPayload() {
-	payload, err := mutator.newPayload()
-	if err != nil {
-		log.Fatalln("Could not create new payload")
-		return
-	}
-	// hack together new url
-	response, err := http.Get(fmt.Sprintf("%s%s", mutator.target, payload))
-	if err != nil {
-		log.Fatalln("Could not send request")
-		return
-	}
-	defer response.Body.Close()
-
-	// create new channel for communication and send http response to channel
-	channel := make(chan *http.Response)
-	channel <- response
-
-	// analyse response
-	go analyseResponse(channel)
 }
