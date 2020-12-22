@@ -1,4 +1,4 @@
-package testServer
+package testserver
 
 import (
 	"net/http"
