@@ -1,3 +1,3 @@
-module github.com/larikuistio/cryptopener/testServer
+module github.com/larikuistio/cryptopener/testserver
 
 go 1.15
