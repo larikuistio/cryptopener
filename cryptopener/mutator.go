@@ -29,7 +29,7 @@ type TokenMutator struct {
 }
 
 // NewMutator creates a new payload mutator
-func NewMutator(target string, port int) *TokenMutator {
+func NewMutator() *TokenMutator {
 	return &TokenMutator{
 		index: 0,
 		previousPayload: []byte{},
@@ -53,8 +53,8 @@ func (mutator TokenMutator) countPayloadLength() (int, error) {
 	return int(math.Floor(float64(mutator.index % mutator.tokenCount))), nil
 }
 
-// Creates new payload
-func (mutator *TokenMutator) newPayload(savePrevious bool) ([]byte, error) {
+// NewPayload creates new payload
+func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 	nextPayloadLength, err := mutator.countPayloadLength()
 	if err != nil {
 		log.Printf("Could not count payload length, errpr %e", err)
