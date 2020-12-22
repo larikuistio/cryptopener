@@ -1,76 +1,54 @@
 package cryptopener
 
-import (
-	"bytes"
-	"math"
-	"fmt"
-)
 
-// tokens is a array of used tokens
-const tokens = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const TOKENS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 
-func createNewPayload(previuosPayload []byte, length int) []byte {
-	newPayload := make([]byte, length)
-	if len(previousPayload) == 0 {
-		return newPayload
+type tokenIterator struct {
+	// list of all tokens
+	tokens []byte
+	previous int
+}
+
+func (iterator *tokenIterator) nextToken() byte {
+	next_index := iterator.previous + 1
+	if next_index > len(iterator.tokens) {
+		next_index = 0
 	}
-	copy(newPayload, previousPayload)
-	return newPayload
+	next := iterator.tokens[next_index]
+	iterator.previous = next_index
+	return next
 }
 
-// TokenMutator creates new token mutations
+// Token mutator creates new token mutations
 type TokenMutator struct {
-	// previously used payload
-	previousPayload []byte
-	// correctly quessed tokens
-	result []string
-	index, tokenCount int
+	target string
+	port int
+	previous []byte
+	iterator tokenIterator
+	result []byte
 }
 
-// NewMutator creates a new payload mutator
 func NewMutator(target string, port int) *TokenMutator {
 	return &TokenMutator{
-		index: 0,
-		previousPayload: []byte{},
-		result: []string{}
-		tokenCount: len(tokens)
+		target: target,
+		port: port,
+		previous: []byte{},
 		iterator: tokenIterator{
-			tokens: []byte(tokens),
+			tokens: []byte(TOKENS),
 			previous: 0,
 		},
 	}
 }
 
-func (mutator TokenMutator) nextToken() byte {
-	// increase index
-	mutator.index += 1
-	nextToken := mutator.tokens[int(mutator.index % mutator.tokenCount)]
-	return nextToken
-}
+// Create new payload
+func (mutator *TokenMutator) newPayload() ([]byte, error) {
+	// new payload with
+	new_payload := make([]byte, len(mutator.previous) + 1)
 
-// countPayloadLength counts length of next payload
-func (mutator TokenMutator) countPayloadLength() (int, error) {
-	if mutator.index == 0 {
-		return 0, fmt.Error("Tried to call payload length count with 0")
-	}
-	return int(math.Floor(mutator.index % mutator.tokenCount)), nil
-}
-
-// Creates new payload
-func (mutator *TokenMutator) newPayload(savePrevious bool) ([]byte, error) {
-	nextPayloadLength := mutator.countPayloadLength()
-	newPayload := createNewPayload(mutator.previuosPayload, nextPayloadLength)
-	if nextPayloadLength > len(newPayload) || savePrevious {
-		if savePrevious {
-			mutator.result = append(mutator.result, string(mutator.previuosPayload))
-		}
-		newPayload = append(newPayload, nextToken)
-		mutator.previous = newPayload
-		return newPayload, nil
-	}
-	// remove last element from slice
-	newPayload = newPayload[:len(newPayload) - 1]
-	newPayload = append(newPayload, nextToken)
-	return newPayload, nil
+	// copy previous payload to new slice
+	copy(new_payload, mutator.previous)
+	new_payload = append(new_payload, mutator.iterator.nextToken())
+	mutator.previous = new_payload
+	return new_payload, nil
 }
