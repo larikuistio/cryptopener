@@ -2,4 +2,4 @@ all:
 	go build -o cryptopener-cli cmd/main.go
 
 gen-certs:
-	openssl req -x509 -newkey rsa:4096 -keyout server-key.pem -out server-cert.pem -days 365
+	openssl req  -nodes -new -x509 -keyout testserver/key.pem -out testserver/cert.pem -days 365
