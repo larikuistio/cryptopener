@@ -40,7 +40,7 @@ func NewMutator() *TokenMutator {
 
 func (mutator TokenMutator) nextToken() byte {
 	// increase index
-	mutator.index ++
+	mutator.index++
 	nextToken := tokens[int(mutator.index % mutator.tokenCount)]
 	return nextToken
 }
@@ -55,13 +55,13 @@ func (mutator TokenMutator) countPayloadLength() (int, error) {
 
 // NewPayload creates new payload
 func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
+	nextToken := mutator.nextToken()
 	nextPayloadLength, err := mutator.countPayloadLength()
 	if err != nil {
 		log.Printf("Could not count payload length, errpr %e", err)
 		return nil, err
 	}
 	newPayload := createNewPayload(mutator.previousPayload, nextPayloadLength)
-	nextToken := mutator.nextToken()
 	if nextPayloadLength > len(newPayload) || savePrevious {
 		if savePrevious {
 			mutator.result = append(mutator.result, string(mutator.previousPayload ))
