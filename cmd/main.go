@@ -9,8 +9,8 @@ import (
 
 func main() {
 	fmt.Println("Not yet implemented")
-	cryptopener.NewCryptopener("127.0.0.1:8080", "/")
-	testserver.TestServer()
-	
+	go testserver.TestServer()
+	cryptopener := cryptopener.NewCryptopener("127.0.0.1:8080", "/")
+	go cryptopener.Run()
 	return
 }
