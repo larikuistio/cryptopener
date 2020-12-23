@@ -6,7 +6,8 @@ import (
 	"math"
 )
 
-const TOKENS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+// tokens is a array of used tokens
+const tokens = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 
 func createNewPayload(previousPayload []byte, length int) []byte {
@@ -14,21 +15,21 @@ func createNewPayload(previousPayload []byte, length int) []byte {
 	if len(previousPayload) == 0 {
 		return newPayload
 	}
-	next := iterator.tokens[next_index]
-	iterator.previous = next_index
-	return next
+	copy(newPayload, previousPayload)
+	return newPayload
 }
 
-// Token mutator creates new token mutations
+// TokenMutator creates new token mutations
 type TokenMutator struct {
-	target string
-	port int
-	previous []byte
-	iterator tokenIterator
-	result []byte
+	// previously used payload
+	previousPayload []byte
+	// correctly quessed tokens
+	result []string
+	index, tokenCount int
 }
 
-func NewMutator(target string, port int) *TokenMutator {
+// NewMutator creates a new payload mutator
+func NewMutator() *TokenMutator {
 	return &TokenMutator{
 		index: 0,
 		previousPayload: []byte{},
@@ -52,8 +53,8 @@ func (mutator TokenMutator) countPayloadLength() (int, error) {
 	return int(math.Floor(float64(mutator.index % mutator.tokenCount))), nil
 }
 
-// Creates new payload
-func (mutator *TokenMutator) newPayload(savePrevious bool) ([]byte, error) {
+// NewPayload creates new payload
+func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 	nextPayloadLength, err := mutator.countPayloadLength()
 	if err != nil {
 		log.Printf("Could not count payload length, errpr %e", err)
