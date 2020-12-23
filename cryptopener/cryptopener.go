@@ -22,10 +22,11 @@ type ReqRespStruct struct {
 	resp []byte
 }
 
-var rmap map[int]ReqRespStruct
-var rctr int
-var actr int
+var rmap map[uint64]ReqRespStruct
+var rctr uint64
+var actr uint64
 var mut sync.Mutex
+var mut2 sync.Mutex
 
 // NewCryptopener creates new instance of Cryptopener
 func NewCryptopener(address string, entry string) *Cryptopener {
@@ -52,17 +53,21 @@ func (p *Cryptopener) sendPayload(payload []byte, client *client.Client) {
 }
 
 func (p *Cryptopener) analyseResponse() {
+	var prev_actr uint64
 	for {
+		mut2.Lock()
 		if actr < rctr {
+			prev_actr = actr
+			actr = actr + 1
+			mut2.Unlock()
 			break
-		} else {
-			time.Sleep(1 * time.Millisecond)
 		}
+		mut2.Unlock()
+		time.Sleep(5 * time.Millisecond)
 	}
 	mut.Lock()
-	request := rmap[actr]
-	response := rmap[actr]
-	actr = actr + 1
+	request := rmap[prev_actr]
+	response := rmap[prev_actr]
 	mut.Unlock()
 	// code for analyzing response here
 	_ = response
@@ -74,7 +79,7 @@ func (p *Cryptopener) analyseResponse() {
 func (p *Cryptopener) Run() {
 	rctr = 0
 	actr = 0
-	client := client.NewClient("127.0.0.1:8080", "asd")
+	client := client.NewClient("127.0.0.1:8080", "/")
 	for {
 		// create new payload
 		payload, _ := p.mutator.NewPayload(false)
