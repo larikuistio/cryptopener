@@ -1,8 +1,18 @@
 package cryptopener
 
 import (
+	"log"
+
+	"github.com/google/uuid"
 	client "github.com/larikuistio/cryptopener/client"
 )
+
+type queueItem struct {
+	id uuid.UUID
+	index int
+	payload []byte
+	response []byte
+}
 
 // Cryptopener a struct that defines cryptopener
 type Cryptopener struct {
@@ -11,6 +21,9 @@ type Cryptopener struct {
 	// token mutator that creates new payloads
 	mutator *TokenMutator
 	ResultToken []string
+	concurrency chan uuid.UUID
+	queue map[uuid.UUID]queueItem
+	iterations int
 }
 
 // NewCryptopener creates new instance of Cryptopener
@@ -21,28 +34,39 @@ func NewCryptopener(address string, entry string) *Cryptopener {
 			Entrypoint: entry,
 		},
 		mutator: NewMutator(),
+		concurrency: make(chan uuid.UUID, 10),
+		queue: make(map[uuid.UUID]queueItem),
+		iterations: 0,
 	}
 	return &cryptopener
 }
 
-func (p *Cryptopener) sendPayload(channel chan []byte, payload []byte) {
-	channel <- []byte{}
-	return
+func (p *Cryptopener) sendPayload(payload []byte) {
+	response := []byte{}
+	id := uuid.Must(uuid.NewRandom())
+	p.queue[id] = queueItem{
+		id: id,
+		index: p.iterations,
+		response: response,
+		payload: payload,
+	}
+	p.concurrency <-id
 }
 
-func (p *Cryptopener) analyseResponse(response []byte) {
-	return
+func (p *Cryptopener) analyseResponse() {
+	item := p.queue[<-p.concurrency]
+	log.Println(item)
 }
 
 // Run starts BREACH attack
 func (p *Cryptopener) Run() {
-	channel := make(chan []byte, 1)
 	for {
+		p.iterations++
 		// create new payload
 		payload, _ := p.mutator.NewPayload(false)
 
 		// send payload into a socket
-		go p.sendPayload(channel, payload)
-		defer p.analyseResponse(<-channel)
+		go p.sendPayload(payload)
+		defer p.analyseResponse()
 	}
 }
