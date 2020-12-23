@@ -75,7 +75,6 @@ func (client *Client) SendMessage(message string) []byte {
 }
 
 // Communicates a return value into a channel thus it can used with runtime routines
-func (client *Client) SendMessageConcurrent(channel chan []byte, message string) {
-	channel <-client.SendMessage(message)
-	return
+func (client *Client) SendMessageConcurrent(message string) []byte {
+	return client.SendMessage(message)
 }
