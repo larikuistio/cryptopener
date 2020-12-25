@@ -1,6 +1,9 @@
 package cryptopener
 
 import (
+	"log"
+	"unsafe"
+
 	client "github.com/larikuistio/cryptopener/client"
 )
 
@@ -25,13 +28,9 @@ func NewCryptopener(address string, entry string) *Cryptopener {
 	return &cryptopener
 }
 
-func (p *Cryptopener) sendPayload(channel chan []byte, payload []byte) {
-	channel <- []byte{}
-	return
-}
-
 func (p *Cryptopener) analyseResponse(response []byte) {
-	return
+	size := unsafe.Sizeof(response)
+	log.Printf("size: %d", size)
 }
 
 // Run starts BREACH attack
@@ -41,8 +40,10 @@ func (p *Cryptopener) Run() {
 		// create new payload
 		payload, _ := p.mutator.NewPayload(false)
 
-		// send payload into a socket
-		go p.sendPayload(channel, payload)
+		// send payload into a socket and then response into channel
+		go func (){
+			channel <-p.client.SendMessage(string(payload))
+		}()
 		defer p.analyseResponse(<-channel)
 	}
 }
