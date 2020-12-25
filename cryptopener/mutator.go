@@ -38,10 +38,9 @@ func NewMutator() *TokenMutator {
 	}
 }
 
-func (mutator TokenMutator) nextToken() byte {
-	// increase index
-	mutator.index ++
+func (mutator *TokenMutator) nextToken() byte {
 	nextToken := tokens[int(mutator.index % mutator.tokenCount)]
+	mutator.index++
 	return nextToken
 }
 
@@ -50,19 +49,19 @@ func (mutator TokenMutator) countPayloadLength() (int, error) {
 	if mutator.index == 0 {
 		return 0, fmt.Errorf("Tried to call payload length count with 0")
 	}
-	return int(math.Floor(float64(mutator.index % mutator.tokenCount))), nil
+	return int(math.Floor(float64(mutator.index / mutator.tokenCount))), nil
 }
 
 // NewPayload creates new payload
 func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
+	nextToken := mutator.nextToken()
 	nextPayloadLength, err := mutator.countPayloadLength()
 	if err != nil {
 		log.Printf("Could not count payload length, errpr %e", err)
 		return nil, err
 	}
 	newPayload := createNewPayload(mutator.previousPayload, nextPayloadLength)
-	nextToken := mutator.nextToken()
-	if nextPayloadLength > len(newPayload) || savePrevious {
+	if nextPayloadLength > len(newPayload) || len(newPayload) == 0 ||savePrevious {
 		if savePrevious {
 			mutator.result = append(mutator.result, string(mutator.previousPayload ))
 		}
@@ -70,7 +69,6 @@ func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 		mutator.previousPayload = newPayload
 		return newPayload, nil
 	}
-	// remove last element from slice
 	newPayload = newPayload[:len(newPayload) - 1]
 	newPayload = append(newPayload, nextToken)
 	return newPayload, nil
