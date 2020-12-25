@@ -82,7 +82,7 @@ func (p *Cryptopener) Run() {
 	client := client.NewClient("127.0.0.1:8080", "/")
 	for {
 		// create new payload
-		payload, _ := p.mutator.NewPayload(false)
+		payload, _ := p.mutator.NewPayload(true)
 
 		// send payload into a socket
 		go p.sendPayload(payload, client)
