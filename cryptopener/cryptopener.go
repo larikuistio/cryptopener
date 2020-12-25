@@ -10,7 +10,7 @@ import (
 // Cryptopener a struct that defines cryptopener
 type Cryptopener struct {
 	// client for sending data to target server
-	client client.Client
+	client *client.Client
 	// token mutator that creates new payloads
 	mutator *TokenMutator
 	ResultToken []string
@@ -19,10 +19,7 @@ type Cryptopener struct {
 // NewCryptopener creates new instance of Cryptopener
 func NewCryptopener(address string, entry string) *Cryptopener {
 	cryptopener := Cryptopener{
-		client: client.Client{
-			Addr: address,
-			Entrypoint: entry,
-		},
+		client: client.NewClient(address, entry),
 		mutator: NewMutator(),
 	}
 	return &cryptopener

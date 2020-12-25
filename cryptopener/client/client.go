@@ -17,8 +17,6 @@ type Client struct {
 	Entrypoint string
 }
 
-
-
 func NewClient(addr string, entrypoint string) *Client {
 	return &Client{
 		Addr: addr,
@@ -40,16 +38,13 @@ func (client *Client) getRequestBody(message string) []byte {
 // Send a message into socket
 func (client *Client) SendMessage(message string) []byte {
 	connection, err := tls.Dial("tcp", client.Addr, &client.config)
-	// set timeout for connection
-	connection.SetReadDeadline(time.Now().Add(ConnectionTimeout * time.Second))
 
-	log.Printf("Sending message %s to server", message)
 	if err != nil {
-		log.Printf("Failed to create connection, error %e", err)
+		log.Printf("Failed to create connection, error %s", []byte(fmt.Sprintf("%s", err)))
 		return nil
 	}
 	defer connection.Close()
-
+	connection.SetReadDeadline(time.Now().Add(ConnectionTimeout * time.Second))
 	m := client.getRequestBody(message)
 	_, err = connection.Write(m)
 	if err != nil {
@@ -70,7 +65,7 @@ func (client *Client) SendMessage(message string) []byte {
 	}
 	defer connection.Close()
 
-	log.Printf("Return buffer %s", string(buffer))
+	log.Printf("Return buffer %s with payload: %s", string(buffer), message)
 	return buffer
 }
 

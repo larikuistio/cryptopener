@@ -38,7 +38,7 @@ func NewMutator() *TokenMutator {
 	}
 }
 
-func (mutator TokenMutator) nextToken() byte {
+func (mutator *TokenMutator) nextToken() byte {
 	nextToken := tokens[int(mutator.index % mutator.tokenCount)]
 	mutator.index++
 	return nextToken
@@ -61,7 +61,7 @@ func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 		return nil, err
 	}
 	newPayload := createNewPayload(mutator.previousPayload, nextPayloadLength)
-	if nextPayloadLength > len(newPayload) || savePrevious {
+	if nextPayloadLength > len(newPayload) || len(newPayload) == 0 ||savePrevious {
 		if savePrevious {
 			mutator.result = append(mutator.result, string(mutator.previousPayload ))
 		}
@@ -69,7 +69,6 @@ func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 		mutator.previousPayload = newPayload
 		return newPayload, nil
 	}
-	// remove last element from slice
 	newPayload = newPayload[:len(newPayload) - 1]
 	newPayload = append(newPayload, nextToken)
 	return newPayload, nil
