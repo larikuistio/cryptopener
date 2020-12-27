@@ -10,6 +10,7 @@ import (
 	"compress/gzip"
 	"strings"
 	"io"
+	"os"
 )
 
 var token string
