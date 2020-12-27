@@ -43,11 +43,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	response := "token=" + token + string(body)
     switch r.Method {
 	case "GET":
-		fmt.Println("testServer: received GET")
+		fmt.Println("testserver: received GET")
+		fmt.Println("testserver: request body: " + string(body))
+		fmt.Println("testserver: sending response with body: " + response)
         w.WriteHeader(http.StatusOK)
 		w.Write([]byte(response))
 	case "POST":
-		fmt.Println("testServer: received POST")
+		fmt.Println("testserver: received POST")
+		fmt.Println("testserver: request body: " + string(body))
+		fmt.Println("testserver: sending response with body: " + response)
         w.WriteHeader(http.StatusOK)
 		w.Write([]byte(response))
     default:
@@ -68,7 +72,7 @@ func RandomString(n int) string {
 func TestServer() {
 	rand.Seed(time.Now().Unix())
 	token = RandomString(64)
-	fmt.Println("testServer: token=" + string(token))
-	fmt.Println("testServer: starting server on 127.0.0.1:8080")
+	fmt.Println("testserver: token=" + string(token))
+	fmt.Println("testserver: starting server on 127.0.0.1:8080")
     log.Fatal(http.ListenAndServeTLS("127.0.0.1:8080", "cert.pem", "key.pem", makeGzipHandler(handler)))
 }
