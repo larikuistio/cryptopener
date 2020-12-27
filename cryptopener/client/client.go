@@ -64,8 +64,6 @@ func (client *Client) SendMessage(message string) []byte {
 		buffer = append(buffer, b[:size]...)
 	}
 	defer connection.Close()
-
-	log.Printf("Return buffer %s with payload: %s", string(buffer), message)
 	return buffer
 }
 

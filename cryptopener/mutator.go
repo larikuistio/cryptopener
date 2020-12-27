@@ -61,7 +61,7 @@ func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 		return nil, err
 	}
 	newPayload := createNewPayload(mutator.previousPayload, nextPayloadLength)
-	if nextPayloadLength > len(newPayload) || len(newPayload) == 0 ||savePrevious {
+	if nextPayloadLength >= len(newPayload) || len(newPayload) == 0 ||savePrevious {
 		if savePrevious {
 			mutator.result = append(mutator.result, string(mutator.previousPayload ))
 		}
