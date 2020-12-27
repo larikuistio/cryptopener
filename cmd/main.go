@@ -3,14 +3,18 @@ package main
 import (
 	"fmt"
 	cryptopener "github.com/larikuistio/cryptopener"
-	testserver "github.com/larikuistio/cryptopener/testserver"
+	"time"
 )
 
 
 func main() {
 	fmt.Println("Not yet implemented")
-	cryptopener.NewCryptopener("127.0.0.1:8080", "/")
-	testserver.TestServer()
 	
+	cryptopener := cryptopener.NewCryptopener("127.0.0.1:8080", "token=")
+	go cryptopener.Run()
+	for {
+		time.Sleep(1 * time.Second)
+	}
+
 	return
 }

@@ -5,6 +5,7 @@ import (
 	"unsafe"
 
 	client "github.com/larikuistio/cryptopener/client"
+	testserver "github.com/larikuistio/cryptopener/testserver"
 )
 
 // Cryptopener a struct that defines cryptopener
@@ -28,10 +29,12 @@ func NewCryptopener(address string, entry string) *Cryptopener {
 func (p *Cryptopener) analyseResponse(response []byte) {
 	size := unsafe.Sizeof(response)
 	log.Printf("size: %d", size)
+	log.Printf(string(response))
 }
 
 // Run starts BREACH attack
 func (p *Cryptopener) Run() {
+	go testserver.TestServer()
 	for {
 		// create new payload
 		payload, _ := p.mutator.NewPayload(false)
