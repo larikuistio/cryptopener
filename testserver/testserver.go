@@ -23,6 +23,18 @@ func (w gzipResponseWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
 }
 
+func checkError(err error) {
+    if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		_, file, no, ok := runtime.Caller(1)
+		if ok {
+			fmt.Printf("\nin: %s#%d\n", file, no)
+		}
+		fmt.Println("\n")
+        os.Exit(1)
+    }
+}
+
 func makeGzipHandler(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
@@ -38,7 +50,8 @@ func makeGzipHandler(fn http.HandlerFunc) http.HandlerFunc {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	body, _ := ioutil.ReadAll(r.Body)
+	body, err := ioutil.ReadAll(r.Body)
+	checkError(err)
 	w.Header().Set("Content-Type", "text/plain")
 	response := "token=" + token + string(body)
     switch r.Method {
