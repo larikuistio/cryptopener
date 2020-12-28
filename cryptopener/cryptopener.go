@@ -2,7 +2,8 @@ package cryptopener
 
 import (
 	"log"
-	"unsafe"
+	"io/ioutil"
+	"os"
 
 	client "github.com/larikuistio/cryptopener/client"
 	testserver "github.com/larikuistio/cryptopener/testserver"
@@ -27,8 +28,12 @@ func NewCryptopener(address string, entry string) *Cryptopener {
 }
 
 func (p *Cryptopener) analyseResponse(response []byte) {
-	size := unsafe.Sizeof(response)
-	log.Printf("size: %d", size)
+	filename := "/tmp/tmpfile"
+	ioutil.WriteFile(filename, response, os.FileMode(0666))
+	fi, _ := os.Stat(filename)
+	size := fi.Size()
+	os.Remove(filename)
+	log.Printf("Filesize: %d", size)
 }
 
 // Run starts BREACH attack
