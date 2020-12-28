@@ -12,6 +12,7 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"path/filepath"
 )
 
 var token string
@@ -89,5 +90,7 @@ func TestServer() {
 	token = RandomString(64)
 	fmt.Println("testserver: token=" + string(token))
 	fmt.Println("testserver: starting server on 127.0.0.1:8080")
-    log.Fatal(http.ListenAndServeTLS("127.0.0.1:8080", "cert.pem", "key.pem", makeGzipHandler(handler)))
+	_, filename, _, _ := runtime.Caller(0)
+	dir := filepath.Dir(filename)
+    log.Fatal(http.ListenAndServeTLS("127.0.0.1:8080", dir + "/cert.pem", dir + "/key.pem", makeGzipHandler(handler)))
 }
