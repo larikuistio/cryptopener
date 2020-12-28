@@ -29,7 +29,6 @@ func NewCryptopener(address string, entry string) *Cryptopener {
 func (p *Cryptopener) analyseResponse(response []byte) {
 	size := unsafe.Sizeof(response)
 	log.Printf("size: %d", size)
-	log.Printf(string(response))
 }
 
 // Run starts BREACH attack

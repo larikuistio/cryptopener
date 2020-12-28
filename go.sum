@@ -1,5 +1,11 @@
 github.com/larikuistio/cryptopener/testserver v0.0.0-20201221191939-82bffa19ad7f h1:NgOZOslGfGetL6ae8Zbxkze/QHWF6SndIvhG5e26/wk=
 github.com/larikuistio/cryptopener/testserver v0.0.0-20201222183409-d8e0d6f7b362 h1:UN7jDIjIxnirlNt8u+gn+VShJGbSXep87rNneLJ2ihc=
 github.com/larikuistio/cryptopener/testserver v0.0.0-20201222183409-d8e0d6f7b362/go.mod h1:9AVLkOSRs3z4+PHrvcMtTXe1Q1m7Xduqr1Rb25C5upk=
+github.com/larikuistio/cryptopener/testserver v0.0.0-20201227092933-73bff605c7f0 h1:wwvxRnMNPWnrW10iSUzQR37L/B/iOe7io+j+949Trwo=
+github.com/larikuistio/cryptopener/testserver v0.0.0-20201227092933-73bff605c7f0/go.mod h1:9AVLkOSRs3z4+PHrvcMtTXe1Q1m7Xduqr1Rb25C5upk=
+github.com/larikuistio/cryptopener/testserver v0.0.0-20201227145220-1e31cf958428 h1:HdTG1IgOb+G8czpqM5oy6r66A9qdKh6aCbyLD6jexpk=
+github.com/larikuistio/cryptopener/testserver v0.0.0-20201227145220-1e31cf958428/go.mod h1:9AVLkOSRs3z4+PHrvcMtTXe1Q1m7Xduqr1Rb25C5upk=
+github.com/larikuistio/cryptopener/testserver v0.0.0-20201227150003-79cf8824b3f7 h1:bw+0IBIPcMY8A6M10Cw1ZQc/7m1OqLkS6NSP4FMdkfE=
+github.com/larikuistio/cryptopener/testserver v0.0.0-20201227150003-79cf8824b3f7/go.mod h1:9AVLkOSRs3z4+PHrvcMtTXe1Q1m7Xduqr1Rb25C5upk=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

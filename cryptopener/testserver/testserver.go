@@ -11,6 +11,7 @@ import (
 	"strings"
 	"io"
 	"os"
+	"runtime"
 )
 
 var token string
@@ -51,7 +52,8 @@ func makeGzipHandler(fn http.HandlerFunc) http.HandlerFunc {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
+	reader := r.Body
+	body, err := ioutil.ReadAll(reader)
 	checkError(err)
 	w.Header().Set("Content-Type", "text/plain")
 	response := "token=" + token + string(body)
