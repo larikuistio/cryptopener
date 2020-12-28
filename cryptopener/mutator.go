@@ -22,9 +22,7 @@ func createNewPayload(previousPayload []byte, length int) []byte {
 // TokenMutator creates new token mutations
 type TokenMutator struct {
 	// previously used payload
-	previousPayload []byte
-	// correctly quessed tokens
-	result []string
+	previousPayload , result[]byte
 	index, tokenCount int
 }
 
@@ -33,7 +31,7 @@ func NewMutator() *TokenMutator {
 	return &TokenMutator{
 		index: 0,
 		previousPayload: []byte{},
-		result: []string{},
+		result: []byte{},
 		tokenCount: len(tokens),
 	}
 }
@@ -49,7 +47,13 @@ func (mutator TokenMutator) countPayloadLength() (int, error) {
 	if mutator.index == 0 {
 		return 0, fmt.Errorf("Tried to call payload length count with 0")
 	}
-	return int(math.Floor(float64(mutator.index / mutator.tokenCount))), nil
+	var length int
+	if mutator.index % mutator.tokenCount == 0 {
+		length = int(math.Floor(float64(mutator.index / mutator.tokenCount)))
+	} else {
+		length = int(math.Floor(float64(mutator.index / mutator.tokenCount))) + 1
+	}
+	return length, nil
 }
 
 // NewPayload creates new payload
@@ -60,10 +64,18 @@ func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 		log.Printf("Could not count payload length, errpr %e", err)
 		return nil, err
 	}
-	newPayload := createNewPayload(mutator.previousPayload, nextPayloadLength)
-	if nextPayloadLength >= len(newPayload) || len(newPayload) == 0 ||savePrevious {
+
+	var newPayload []byte
+	if len(mutator.result) != 0 {
+		newPayload = createNewPayload(mutator.result, nextPayloadLength)
+	} else {
+		newPayload = createNewPayload(mutator.previousPayload, nextPayloadLength)
+	}
+
+	if nextPayloadLength > len(mutator.previousPayload) || len(newPayload) == 0 || savePrevious {
+		log.Printf("old new %s %d %d", newPayload, nextPayloadLength, len(mutator.previousPayload))
 		if savePrevious {
-			mutator.result = append(mutator.result, string(mutator.previousPayload ))
+			mutator.result = append(mutator.result, mutator.previousPayload...)
 		}
 		newPayload = append(newPayload, nextToken)
 		mutator.previousPayload = newPayload
@@ -71,5 +83,6 @@ func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 	}
 	newPayload = newPayload[:len(newPayload) - 1]
 	newPayload = append(newPayload, nextToken)
+	mutator.previousPayload = newPayload
 	return newPayload, nil
 }
