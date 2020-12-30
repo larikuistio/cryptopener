@@ -22,6 +22,17 @@ type gzipResponseWriter struct {
 	http.ResponseWriter
 }
 
+type TestServer struct {
+	Token string
+}
+
+func NewTestServer() *TestServer {
+	rand.Seed(time.Now().UTC().UnixNano())
+	return &TestServer{
+		Token: RandomString(64),
+	}
+}
+
 func (w gzipResponseWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
 }
@@ -86,9 +97,9 @@ func RandomString(n int) string {
 	return string(b)
 }
 
-func TestServer() {
+func (s *TestServer) Run() {
 	rand.Seed(time.Now().Unix())
-	token = RandomString(64)
+	token = s.Token
 	fmt.Println("testserver: token=" + string(token))
 	fmt.Println("testserver: starting server on 127.0.0.1:8080")
 	_, filename, _, _ := runtime.Caller(0)
