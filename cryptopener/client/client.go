@@ -29,8 +29,8 @@ func NewClient(addr string, entrypoint string) *Client {
 	}
 }
 
-func (client *Client) getRequestBody(message string) []byte {
-	token := fmt.Sprintf("%s%s", client.Entrypoint, message)
+func (client *Client) getRequestBody(message string, padding string) []byte {
+	token := fmt.Sprintf("%s%s%s", padding, client.Entrypoint, message)
 	length := len(token)
 	request := fmt.Sprintf("POST / HTTP/1.1\r\nHost: %s\r\naccept-encoding: gzip, deflate, br\r\ncontent-length: %d\r\n\r\n%s\r\n", client.Addr, length, token)
 	
@@ -38,7 +38,7 @@ func (client *Client) getRequestBody(message string) []byte {
 }
 
 // Send a message into socket
-func (client *Client) SendMessage(message string) []byte {
+func (client *Client) SendMessage(message string, padding string) []byte {
 	connection, err := tls.Dial("tcp", client.Addr, &client.config)
 
 	if err != nil {
@@ -47,7 +47,7 @@ func (client *Client) SendMessage(message string) []byte {
 	}
 	defer connection.Close()
 	connection.SetReadDeadline(time.Now().Add(ConnectionTimeout * time.Second))
-	m := client.getRequestBody(message)
+	m := client.getRequestBody(message, padding)
 	_, err = connection.Write(m)
 	if err != nil {
 		log.Printf("Failed to write message, error %e", err)
@@ -70,7 +70,7 @@ func (client *Client) SendMessage(message string) []byte {
 }
 
 // Communicates a return value into a channel thus it can used with runtime routines
-func (client *Client) SendMessageConcurrent(channel chan []byte, message string) {
-	channel <-client.SendMessage(message)
+func (client *Client) SendMessageConcurrent(channel chan []byte, message string, padding string) {
+	channel <-client.SendMessage(message, padding)
 	return
 }

@@ -78,27 +78,42 @@ func (p *Cryptopener) Run() {
 				payload = []byte(string(payload) + string(dummy_chars[i]))
 			}
 			log.Printf("Sending payload: %s", string(payload))
-			time.Sleep(4 * time.Millisecond)
+			time.Sleep(5 * time.Millisecond)
 			// send payload into a socket and then response into channel
-			response := p.client.SendMessage(padding + string(payload))
+			response := p.client.SendMessage(string(payload), padding)
 			p.base_length = p.analyseResponse(response)
 			x = 1
 		} else if x == 1 {
-			// create new payload
 			var payload []byte
-			payload = prev_payload
-			for i := 0; i < m; i++ {
-				for a := 0; a < rand.Intn(((m - 1) % 2) * 64 + 1); a++ {
-					_ = p.mutator.NextToken()
+			var guesses []string
+			var guess_found bool
+			for true {
+				// create new payload
+				payload = prev_payload
+				for i := 0; i < m; i++ {
+					for a := 0; a < rand.Intn(((m - 1) % 2) * 64 + 1); a++ {
+						_ = p.mutator.NextToken()
+					}
+					nextToken := p.mutator.NextToken()
+					payload = []byte(string(payload) + string(nextToken))
 				}
-				nextToken := p.mutator.NextToken()
-				payload = []byte(string(payload) + string(nextToken))
+				guess_found = false
+				for i := range guesses {
+					if guesses[i] == string(payload[len(payload) - m:]) {
+						guess_found = true
+						break
+					}
+				}
+				if !guess_found {
+					guesses = append(guesses, string(payload[len(payload) - m:]))
+					break
+				}
 			}
 			
 			log.Printf("Sending payload: %s", string(payload))
-			time.Sleep(4 * time.Millisecond)
+			time.Sleep(5 * time.Millisecond)
 			// send payload into a socket and then response into channel
-			response := p.client.SendMessage(padding + string(payload))
+			response := p.client.SendMessage(string(payload), padding)
 			temp_length = p.analyseResponse(response)
 			p.guess_count++
 
@@ -110,17 +125,14 @@ func (p *Cryptopener) Run() {
 				prev_payload = payload
 				m = 1
 				p.guess_count = 0
-				if len(padding) != 0 {
-					padding = ""
-				}
-			} else if p.guess_count > (m * m * m * m) * 64 {
+				
+			} else if p.guess_count > (m * m * m * m * m) * 64 {
 				m++
 				x = 0
 				p.guess_count = 0
-				if m == 7 {
-					m = 0
+				if m == 4 {
 					padding = padding + createPadding()
-				} else if m == 3 {
+				} else if m == 2 {
 					padding = padding + createPadding()
 				} else if m == 9 {
 					m = 0
@@ -128,7 +140,7 @@ func (p *Cryptopener) Run() {
 			}
 		}
 
-		if p.correct_count == 64 {
+		if p.correct_count == 63 {
 			log.Printf("The guessed token is %s", p.ResultToken)
 			log.Printf("Correct token is %s", server.Token)
 			break
