@@ -33,7 +33,7 @@ func (client *Client) getRequestBody(message string, padding string) []byte {
 	token := fmt.Sprintf("%s%s%s", padding, client.Entrypoint, message)
 	length := len(token)
 	request := fmt.Sprintf("POST / HTTP/1.1\r\nHost: %s\r\naccept-encoding: gzip, deflate, br\r\ncontent-length: %d\r\n\r\n%s\r\n", client.Addr, length, token)
-	
+
 	return []byte(request)
 }
 
