@@ -1,46 +1,9 @@
 package cryptopener
 
-import (
-	"fmt"
-	"log"
-	//"log"
-	"math/big"
-)
 
 // tokens is a array of used tokens
 const tokens = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-// Factorial counts factorial for value
-func factorial(val int) (*big.Int, error) {
-	if val <= 0 {
-		return &big.Int{}, fmt.Errorf("Cannot create factorial from negative value")
-	}
-	result := big.NewInt(1)
-	for i := 1; i <= val; i++ {
-		j := big.NewInt(int64(i))
-		result.Mul(result, j)
-
-	}
-	return result, nil
-}
-
-// CountPermutations counts amount of permutations for set of values
-func countPermutations(totalValues int, itemCount int) (int64, error) {
-	totalPermutations, err := factorial(totalValues)
-	if err != nil {
-		return int64(-1), err
-	}
-
-	divider := totalValues - itemCount
-	if divider <= 0 {
-		return int64(-1), fmt.Errorf("Cannot create factorial from negative value")
-	}
-
-	subPermutations, _ := factorial(divider)
-
-	result := new(big.Int).Div(totalPermutations, subPermutations).Uint64()
-	return int64(result), nil
-}
 
 func createNewPayload(previousPayload []byte, length int) []byte {
 	newPayload := make([]byte, length)
@@ -107,27 +70,34 @@ func (mutator *TokenMutator) addToken() {
 	}
 	mutator.lastIndexPos++
 	mutator.tokenMap[mutator.lastIndexPos] = newToken
-	mutator.position = 0
 }
 
 // NewPayload creates new payload
 func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
-	// FIXME: is heavy please cache
-	if int(mutator.tokenMap[mutator.lastIndexPos].index % mutator.tokenCount) == 0 && mutator.tokenMap[mutator.lastIndexPos].index != 0{
+	var sum int
+	for _, i := range mutator.tokenMap {
+		sum += int(i.index % mutator.tokenCount)
+	}
+
+	if sum == 0 && mutator.mutations >= 62 {
 		mutator.addToken()
+		mutator.position = 0
+	} else if mutator.position > len(mutator.tokenMap) {
+		mutator.position = 0
 	}
 
 	var newPayload []byte
 	for pos := 0; pos <= len(mutator.tokenMap) - 1; pos++ {
 		elem := mutator.tokenMap[pos]
-		if pos == mutator.position {
+		if pos <= mutator.position {
 			newPayload = append(newPayload, elem.nextToken(mutator.tokenCount))
-			if len(mutator.tokenMap) > 1 {
-				mutator.position++
-			}
 		} else {
 			newPayload = append(newPayload, elem.getCurrentToken(mutator.tokenCount))
 		}
+	}
+
+	if mutator.mutations >= 62 {
+		mutator.position++
 	}
 	mutator.mutations++
 	return newPayload, nil
