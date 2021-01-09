@@ -39,7 +39,7 @@ func (guess guessToken) movePosition(tokenCount int) bool {
 // TokenMutator creates new token mutations
 type TokenMutator struct {
 	// previously used payload
-	previousPayload , result[]byte
+	previousPayload, result[]byte
 	tokenCount, position, lastIndexPos int
 	maxPermutations, mutations int64
 	tokenMap map[int]*guessToken
@@ -74,6 +74,16 @@ func (mutator *TokenMutator) addToken() {
 
 // NewPayload creates new payload
 func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
+	if savePrevious {
+		mutator.result = append(mutator.result, mutator.previousPayload...)
+		// clear existing token map and create new one
+		mutator.tokenMap = make(map[int]*guessToken)
+		mutator.tokenMap[0] = &guessToken{
+			index: 0,
+		}
+
+	}
+	// checks if all permutations are done
 	var sum int
 	for _, i := range mutator.tokenMap {
 		sum += int(i.index % mutator.tokenCount)
@@ -87,6 +97,10 @@ func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 	}
 
 	var newPayload []byte
+	if len(mutator.result) > 0 {
+		newPayload = append(newPayload, mutator.result...)
+	}
+
 	for pos := 0; pos <= len(mutator.tokenMap) - 1; pos++ {
 		elem := mutator.tokenMap[pos]
 		if pos <= mutator.position {
@@ -96,9 +110,11 @@ func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 		}
 	}
 
-	if mutator.mutations >= 62 {
-		mutator.position++
-	}
+	// keep track of previous payload
+	mutator.previousPayload = newPayload
+
+	// move to next token
+	mutator.position++
 	mutator.mutations++
 	return newPayload, nil
 }
