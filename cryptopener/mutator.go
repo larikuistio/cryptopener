@@ -89,7 +89,12 @@ func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 		sum += int(i.index % mutator.tokenCount)
 	}
 
-	if sum == 0 && mutator.mutations >= 62 {
+	mutationsCount := int64(0)
+	for i := 0; i <= mutator.lastIndexPos; i++ {
+		mutationsCount += int64(Pow(mutator.tokenCount, mutator.lastIndexPos))
+	}
+
+	if sum == 0 && mutator.mutations >= mutationsCount {
 		mutator.addToken()
 		mutator.position = 0
 	} else if mutator.position > len(mutator.tokenMap) {

