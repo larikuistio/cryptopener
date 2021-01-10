@@ -1,4 +1,4 @@
-package testserver
+package main
 
 import (
 	"net/http"
@@ -97,8 +97,9 @@ func RandomString(n int) string {
 	return string(b)
 }
 
-func (s *TestServer) Run() {
+func main() {
 	rand.Seed(time.Now().Unix())
+	s := NewTestServer()
 	token = s.Token
 	fmt.Println("testserver: token=" + string(token))
 	fmt.Println("testserver: starting server on 127.0.0.1:8080")
