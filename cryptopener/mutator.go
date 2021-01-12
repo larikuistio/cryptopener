@@ -1,7 +1,4 @@
 package cryptopener
-import (
-	//"log"
-)
 
 // tokens is a array of used tokens
 const tokens = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -92,9 +89,6 @@ func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 	}
 
 	mutationsCount := int64(0)
-	/*for i := 0; i <= mutator.lastIndexPos; i++ {
-		mutationsCount += int64(Pow(mutator.tokenCount, mutator.lastIndexPos))
-	}*/
 	mutationsCount = int64(Pow(mutator.tokenCount, mutator.lastIndexPos+1))
 
 	if sum == 0 && mutator.mutations >= mutationsCount {
@@ -108,10 +102,8 @@ func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 	if len(mutator.result) > 0 {
 		newPayload = append(newPayload, mutator.result...)
 	}
-	//log.Printf("position == %d", mutator.position)
-	//log.Printf("len(map) == %d", len(mutator.tokenMap))
+	
 	for pos := 0; pos <= len(mutator.tokenMap) - 1; pos++ {
-		//log.Printf("loop_pos) == %d", pos)
 		elem := mutator.tokenMap[pos]
 		if pos != 0 {
 			if mutator.tokenMap[pos-1].movePosition(mutator.tokenCount) {
@@ -123,15 +115,6 @@ func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 		} else {
 			newPayload = append(newPayload, elem.nextToken(mutator.tokenCount))
 		}
-		/*
-		if pos <= mutator.position {
-			log.Printf("Next")
-			newPayload = append(newPayload, elem.nextToken(mutator.tokenCount))
-		} else {
-			log.Printf("Current")
-			newPayload = append(newPayload, elem.getCurrentToken(mutator.tokenCount))
-		}
-		*/
 	}
 
 	// keep track of previous payload

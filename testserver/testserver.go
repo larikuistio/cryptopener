@@ -80,9 +80,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("testserver: received POST")
 		fmt.Println("testserver: request body: " + string(body))
 		fmt.Println("testserver: sending response with body: " + response)
-		if strings.Contains(string(body), "token="+string(token)) {
-			fmt.Println("HYVÄHYVÄVITTU")
-		}
         w.WriteHeader(http.StatusOK)
 		w.Write([]byte(response))
     default:
