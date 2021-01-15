@@ -1,11 +1,5 @@
 package cryptopener
 
-import (
-	"fmt"
-	"log"
-	"math"
-)
-
 // tokens is a array of used tokens
 const tokens = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -19,70 +13,115 @@ func createNewPayload(previousPayload []byte, length int) []byte {
 	return newPayload
 }
 
+type guessToken struct {
+	index int
+}
+
+func (guess *guessToken) nextToken(tokenCount int) byte {
+	nextToken := tokens[int(guess.index % tokenCount)]
+	guess.index++
+	return nextToken
+}
+
+func (guess guessToken) getCurrentToken(tokenCount int) byte {
+ 	return tokens[int(guess.index % tokenCount)]
+}
+
+func (guess guessToken) movePosition(tokenCount int) bool {
+	remainder := int(guess.index % tokenCount)
+	if remainder == 0 && guess.index != 0 {
+		return true
+	}
+	return false
+}
+
 // TokenMutator creates new token mutations
 type TokenMutator struct {
 	// previously used payload
-	previousPayload , result[]byte
-	index, tokenCount int
+	previousPayload, result[]byte
+	tokenCount, position, lastIndexPos int
+	maxPermutations, mutations int64
+	tokenMap map[int]*guessToken
 }
 
 // NewMutator creates a new payload mutator
 func NewMutator() *TokenMutator {
-	return &TokenMutator{
-		index: 0,
+	mutator := TokenMutator{
+		mutations: 0,
+		position: 0,
+		maxPermutations: int64(len(tokens)),
 		previousPayload: []byte{},
 		result: []byte{},
 		tokenCount: len(tokens),
+		tokenMap: make(map[int]*guessToken),
+		lastIndexPos: 0,
 	}
+	// create initial token
+	mutator.tokenMap[0] = &guessToken{
+		index: 0,
+	}
+	return &mutator
 }
 
-func (mutator *TokenMutator) NextToken() byte {
-	nextToken := tokens[int(mutator.index % mutator.tokenCount)]
-	mutator.index++
-	return nextToken
-}
-
-// countPayloadLength counts length of next payload
-func (mutator TokenMutator) countPayloadLength() (int, error) {
-	if mutator.index == 0 {
-		return 0, fmt.Errorf("Tried to call payload length count with 0")
+func (mutator *TokenMutator) addToken() {
+	newToken := &guessToken{
+		index: 0,
 	}
-	var length int
-	if mutator.index % mutator.tokenCount == 0 {
-		length = int(math.Floor(float64(mutator.index / mutator.tokenCount)))
-	} else {
-		length = int(math.Floor(float64(mutator.index / mutator.tokenCount))) + 1
-	}
-	return length, nil
+	mutator.lastIndexPos++
+	mutator.tokenMap[mutator.lastIndexPos] = newToken
 }
 
 // NewPayload creates new payload
 func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
-	nextToken := mutator.NextToken()
-	nextPayloadLength, err := mutator.countPayloadLength()
-	if err != nil {
-		log.Printf("Could not count payload length, errpr %e", err)
-		return nil, err
+	if savePrevious {
+		mutator.result = append(mutator.result, mutator.previousPayload...)
+		// clear existing token map and create new one
+		mutator.tokenMap = make(map[int]*guessToken)
+		mutator.tokenMap[0] = &guessToken{
+			index: 0,
+		}
+
+	}
+	// checks if all permutations are done
+	var sum int
+	for _, i := range mutator.tokenMap {
+		sum += int(i.index % mutator.tokenCount)
+	}
+
+	mutationsCount := int64(0)
+	mutationsCount = int64(Pow(mutator.tokenCount, mutator.lastIndexPos+1))
+
+	if sum == 0 && mutator.mutations >= mutationsCount {
+		mutator.addToken()
+		mutator.position = 0
+	} else if mutator.position > len(mutator.tokenMap) {
+		mutator.position = 0
 	}
 
 	var newPayload []byte
-	if len(mutator.result) != 0 {
-		newPayload = createNewPayload(mutator.result, nextPayloadLength)
-	} else {
-		newPayload = createNewPayload(mutator.previousPayload, nextPayloadLength)
+	if len(mutator.result) > 0 {
+		newPayload = append(newPayload, mutator.result...)
+	}
+	
+	for pos := 0; pos <= len(mutator.tokenMap) - 1; pos++ {
+		elem := mutator.tokenMap[pos]
+		if pos != 0 {
+			if mutator.tokenMap[pos-1].movePosition(mutator.tokenCount) {
+				elem.nextToken(mutator.tokenCount)
+				newPayload = append(newPayload, elem.getCurrentToken(mutator.tokenCount))
+			} else {
+				newPayload = append(newPayload, elem.getCurrentToken(mutator.tokenCount))
+			}
+		} else {
+			newPayload = append(newPayload, elem.nextToken(mutator.tokenCount))
+		}
 	}
 
-	if nextPayloadLength > len(mutator.previousPayload) || len(newPayload) == 0 || savePrevious {
-		log.Printf("old new %s %d %d", newPayload, nextPayloadLength, len(mutator.previousPayload))
-		if savePrevious {
-			mutator.result = append(mutator.result, mutator.previousPayload...)
-		}
-		newPayload = append(newPayload, nextToken)
-		mutator.previousPayload = newPayload
-		return newPayload, nil
-	}
-	newPayload = newPayload[:len(newPayload) - 1]
-	newPayload = append(newPayload, nextToken)
+	// keep track of previous payload
 	mutator.previousPayload = newPayload
+
+	// move to next token
+	mutator.position++
+	mutator.mutations++
 	return newPayload, nil
 }
