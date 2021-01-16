@@ -16,14 +16,16 @@ type Cryptopener struct {
 	client *client.Client
 	// token mutator that creates new payloads
 	mutator *TokenMutator
+	TokenLength int
 	ResultToken string
 }
 
 // NewCryptopener creates new instance of Cryptopener
-func NewCryptopener(address string, entry string) *Cryptopener {
+func NewCryptopener(address string, entry string, length int) *Cryptopener {
 	cryptopener := Cryptopener{
 		client: client.NewClient(address, entry),
 		mutator: NewMutator(),
+		TokenLength: length,
 	}
 	return &cryptopener
 }
@@ -111,7 +113,7 @@ func (p *Cryptopener) Run() {
 			}
 		}
 
-		if correct_count == 64 {
+		if correct_count == p.TokenLength {
 			log.Printf("The guessed token is %s", p.ResultToken)
 			break
 		}
