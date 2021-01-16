@@ -107,6 +107,7 @@ func main() {
 	rand.Seed(time.Now().Unix())
 	s := NewTestServer(length)
 	token = s.Token
+	fmt.Println("testserver: token=" + string(token))
 	fmt.Println("testserver: starting server on 127.0.0.1:8080")
 	_, filename, _, _ := runtime.Caller(0)
 	dir := filepath.Dir(filename)
