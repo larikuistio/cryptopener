@@ -30,7 +30,7 @@ type TestServer struct {
 func NewTestServer(length int) *TestServer {
 	rand.Seed(time.Now().UTC().UnixNano())
 	return &TestServer{
-		Token: RandomString(length + 1),
+		Token: RandomString(length),
 	}
 }
 
