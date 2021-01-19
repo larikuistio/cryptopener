@@ -102,11 +102,11 @@ func (mutator *TokenMutator) NewPayload(savePrevious bool) ([]byte, error) {
 	if len(mutator.result) > 0 {
 		newPayload = append(newPayload, mutator.result...)
 	}
-	
+
 	for pos := 0; pos <= len(mutator.tokenMap) - 1; pos++ {
 		elem := mutator.tokenMap[pos]
 		if pos != 0 {
-			if mutator.tokenMap[pos-1].movePosition(mutator.tokenCount) {
+			if mutator.tokenMap[pos - 1].movePosition(mutator.tokenCount) {
 				elem.nextToken(mutator.tokenCount)
 				newPayload = append(newPayload, elem.getCurrentToken(mutator.tokenCount))
 			} else {
