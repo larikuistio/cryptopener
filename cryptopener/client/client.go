@@ -12,7 +12,7 @@ const ConnectionTimeout = 60
 type Client struct {
 	config tls.Config
 	Addr string
-	bufferSize int
+	bufferSize, RequestCount int
 	// base attack vector
 	Entrypoint string
 }
@@ -22,6 +22,7 @@ func NewClient(addr string, entrypoint string) *Client {
 		Addr: addr,
 		bufferSize: 4096,
 		Entrypoint: entrypoint,
+		RequestCount: 0,
 		config: tls.Config{
 			// with this we can use our own cert
 			InsecureSkipVerify: true,
@@ -64,6 +65,7 @@ func (client *Client) SendMessage(message []byte, padding []byte) []byte {
 		buffer = append(buffer, b[:size]...)
 	}
 	defer connection.Close()
+	client.RequestCount++
 	return buffer
 }
 

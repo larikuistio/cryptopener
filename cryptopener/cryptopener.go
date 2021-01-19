@@ -113,5 +113,5 @@ func (p *Cryptopener) Run() {
 			}
 		}
 	}
-	log.Printf("The guessed token is %s", string(p.ResultToken))
+	log.Printf("The guessed token is %s, amount of request: %d", string(p.ResultToken), p.client.RequestCount)
 }
