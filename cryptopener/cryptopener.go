@@ -10,6 +10,18 @@ import (
 	client "github.com/larikuistio/cryptopener/client"
 )
 
+// declare global variables
+var (
+	// boolean telling if new base length of message is needed
+	checkBaseLength bool = true
+	// length of message in bits
+	baseLength int64
+	// message padding
+	padding []byte
+	// mutation count
+	mutations int = 1
+)
+
 // Cryptopener a struct that defines cryptopener
 type Cryptopener struct {
 	// client for sending data to target server
@@ -66,11 +78,6 @@ func Pow(x int, n int) int {
 
 // Run starts BREACH attack
 func (p *Cryptopener) Run() {
-	var checkBaseLength bool = true
-	var baseLength int64
-	var mutations int = 1
-
-	var padding []byte
 	for p.correctCount < p.TokenLength - 1 {
 		// new payload
 		payload := []byte{}
